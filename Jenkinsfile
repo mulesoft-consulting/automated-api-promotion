@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        ANYPOINT_USERNAME     = credentials('anypoint_username')
+        ANYPOINT_USER     = credentials('anypoint_username')
         ANYPOINT_PASSWORD     = credentials('anypoint_password')
     } 
 
