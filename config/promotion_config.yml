@@ -1,0 +1,21 @@
+Config:
+  SourceEnvName: "TEST"
+  SourceServerName: "summer"
+  SourceServerType: "SERVER"
+  TargetEnvName: "PROD"
+  TargetServerName: "joker"
+  TargetServerType: "SERVER"
+  Applications:
+    - hello-world-v1
+    - hello-world-v2
+
+
+#Config:
+#  SourceEnvName: "PROD"
+#  SourceServerName: "joker"
+#  SourceServerType: "SERVER"
+#  TargetEnvName: "TEST"
+#  TargetServerName: "ContainerizedCluster"
+#  TargetServerType: "CLUSTER"
+#  Applications:
+#    - hello-world-cluster
