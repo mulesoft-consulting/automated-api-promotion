@@ -175,16 +175,20 @@ function getCluster(token, orgId, envId, clusterName) {
  * from environment configure as source
  */
 function redeployApplication(token, orgId, envId, runtimeId, appName, appId) {
-	return getApplicationId(token, orgId, envId, appName).then(appId => {
-		if(appId != null) {
-			console.log("Application with name '" + appName + "' is being undeployed.");
-			return undeployApplication(token, orgId, envId, appId);
+	return getApplicationId(token, orgId, envId, appName).then(targetAppId => {
+		if(targetAppId != null) {
+			console.log("Application with name '" + appName + "' and ID: '" + targetAppId + "' is being redeployed.");
+			//return undeployApplication(token, orgId, envId, appId);
+			return updateAppOnTarget(token, orgId, envId, targetAppId, appId);
+		} else {
+			console.log("Application with name '" + appName + "' is being deployed.");
+			return deployToTarget(token, orgId, envId, appId, runtimeId, appName);
 		}
 	})
-	.then(result => {
+	/*.then(result => {
 		console.log("Application with name '" + appName + "' is being deployed.");
 		return deployToTarget(token, orgId, envId, appId, runtimeId, appName);
-	})
+	})*/
 	.catch(err => {
 		console.log("Error: " + err);
 		process.exit(-1);
@@ -209,7 +213,7 @@ function getApplicationId(token, orgId, envId, appName) {
 				});
 				
 				if(application) {
-					console.log("Application with name: '" + appName + "' already exists on the server. Application will be deleted and redeployed.");
+					console.log("Application with name: '" + appName + "' already exists on the server. Application will be patched.");
 					resolve(application.id);
 				} else {
 					console.log("Application with name: '" + appName + "' not found. Fresh deployment will be triggered.");
@@ -222,23 +226,25 @@ function getApplicationId(token, orgId, envId, appName) {
 }
 
 /*
- * Undeployes application
+ * Updates the application if it already exists on the target runtime.
  */
-function undeployApplication(token, orgId, envId, appId) {
+function updateAppOnTarget(token, orgId, envId, appIdToBeUpdated, sourceAppId) {
 	return new Promise(function(resolve, reject) {
-
-		Req.delete({
-			"headers": {"content-type": "application/json", "Authorization": token, "X-ANYPNT-ORG-ID": orgId, "X-ANYPNT-ENV-ID": envId}, 
-			"url": "https://anypoint.mulesoft.com/hybrid/api/v1/applications/"+appId
+		Req.patch({
+		    "headers": { "content-type": "application/json", "Authorization": token, 
+		    	"X-ANYPNT-ORG-ID": orgId, "X-ANYPNT-ENV-ID": envId
+			},
+		    "url": "https://anypoint.mulesoft.com/hybrid/api/v1/applications/"+appIdToBeUpdated+"/artifact",
+		    "body": JSON.stringify({"applicationSource":{"id":sourceAppId,"source":"HYBRID"}})
 		}, (error, response, body) => {
-		    if(error) {
-		    	reject(error);
-		    } else {
-		    	// there is no body as this is delete http method
-				resolve("undeployed");									    				
-		    }
+			if(error) {
+				reject(error);
+			} else {
+				jsonBody = JSON.parse(body);
+				console.log("Application deployed: " + appIdToBeUpdated);
+				resolve(jsonBody);
+			}
 		});
-
 	});
 }
 
@@ -266,6 +272,27 @@ function deployToTarget(token, orgId, envId, appId, targetId, appName) {
 				resolve(jsonBody);
 			}
 		});
+	});
+}
+
+/*
+ * Undeployes application
+ */
+function undeployApplication(token, orgId, envId, appId) {
+	return new Promise(function(resolve, reject) {
+
+		Req.delete({
+			"headers": {"content-type": "application/json", "Authorization": token, "X-ANYPNT-ORG-ID": orgId, "X-ANYPNT-ENV-ID": envId}, 
+			"url": "https://anypoint.mulesoft.com/hybrid/api/v1/applications/"+appId
+		}, (error, response, body) => {
+		    if(error) {
+		    	reject(error);
+		    } else {
+		    	// there is no body as this is delete http method
+				resolve("undeployed");									    				
+		    }
+		});
+
 	});
 }
 

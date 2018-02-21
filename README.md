@@ -57,5 +57,9 @@ npm start
 Project also contains `Jenkinsfile` with simple pipeline definition for easy integration with Jenkins. Pipeline implements "one click" deployment and must be triggered manually.
 The same environment variables as mentioned in **Prerequisite** section must be configured on Jenkins server.
 
+## Roadmap
+
+* API Manager: Promoting an API
+
 ## Not Supported Functionality
 Deployment of external properties file is not supported. Properties file must be copied to server before this script runs.
