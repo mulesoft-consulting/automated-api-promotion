@@ -60,6 +60,8 @@ The same environment variables as mentioned in **Prerequisite** section must be 
 ## Roadmap
 
 * API Manager: Promoting an API
+* Promote to more than one target
+* Cloudhub support
 
 ## Not Supported Functionality
 Deployment of external properties file is not supported. Properties file must be copied to server before this script runs.
