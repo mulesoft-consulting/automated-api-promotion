@@ -46,7 +46,7 @@ npm install
 ```
 3. Run script app.js or use npm to run script
 ```
-node src/app.js
+node src/app.js app
 ```
 or
 ```

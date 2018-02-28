@@ -11,6 +11,8 @@ console.log('------ Application has started ------');
 //used libs
 const Utility = require('./utility');
 const Arm = require('./arm_api_wrapper');
+const Manager = require('./manager_api_wrapper');
+const Common = require('./common_api_wrapper');
 
 //config
 const CONFIG = Utility.loadConfiguration();
@@ -22,43 +24,39 @@ const TARGET_NAME = CONFIG.Config.TargetServerName;
 const SOURCE_NAME = CONFIG.Config.SourceServerName;
 const APPLICATIONS = CONFIG.Config.Applications; //applications to be promoted
 
+var anypointInfo = {};
+
+var arg = Utility.getArgument(); //validate argument
+
 //access environment variable
 console.log('User: "' + process.env.ANYPOINT_USER + '" is connecting to anypoint');
 
-//main function
-runPromotion();
+//main logic
+if(arg === "api") {
+	runApiPromotion();
+} else if("app") {
+	runApplicationPromotion();
+}
+//end of main logic
+
+
+/*
+ * Triggers API promotion logic. Implements the whole integration flow.
+ */
+function runApiPromotion() {
+
+}
 
 /*
  * Triggers application promotion logic. Implements the whole integration flow.
  */
-function runPromotion() {
-	var token = "";
-	var orgId = "";
-	var envSourceID = "";	
-	var envTargetID = "";
-	var runtimeTargetIdForDeployment= "";
+function runApplicationPromotion() {
 
-	Arm.login()
-	.then((resToken) => {
-		token = resToken;
-		return Arm.getOrgId(token);
-	})
-	.then((resOrgId) => {
-		orgId = resOrgId; //save for use by other calls
-		return Arm.getEnvironments(token, orgId, TARGET_ENV_NAME, SOURCE_ENV_NAME);
-	})
-	.then((envs) => {
-		envSourceID = envs[0][Arm.SOURCE_ENV_ID]; //save for use by other calls
-		envTargetID = envs[1][Arm.TARGET_ENV_ID]; //save for use by other calls
-		var promiseArray = Utility.definePromisesToGetTargetAndSourceRuntime(token, orgId, 
-			TARGET_TYPE, TARGET_NAME, envTargetID, SOURCE_TYPE, SOURCE_NAME, envSourceID);
-
-		return Promise.all(promiseArray);
-	})
-	.then(([runtimeTargetId, runtimeSourceId]) => {
-    		console.log("Runtime Source ID: " + runtimeSourceId + "\nRuntime Target ID: " + runtimeTargetId);
-    		runtimeTargetIdForDeployment = runtimeTargetId;
-    		return Arm.getApplications(token, orgId, envSourceID, APPLICATIONS);
+	Common.getAnypointInfo(TARGET_ENV_NAME, SOURCE_ENV_NAME, SOURCE_TYPE, SOURCE_NAME, 
+		TARGET_TYPE, TARGET_NAME, APPLICATIONS)	
+	.then((anyInfo) => {
+		anypointInfo = anyInfo;
+		return Arm.getApplications(anypointInfo.token, anypointInfo.orgId, anypointInfo.sourceEnvId, APPLICATIONS);
 	})
 	.then((applications) => {
 		console.log("Applications to be promoted: " + JSON.stringify(applications));
@@ -71,8 +69,10 @@ function runPromotion() {
         		appName = key;
     		}
 
-    		//undeploy app if it exists and deploy a version from server marked as source        		
-    		return Arm.redeployApplication(token, orgId, envTargetID, runtimeTargetIdForDeployment, appName, application[key]);
+    		return Arm.redeployApplication(anypointInfo.token, anypointInfo.orgId, 
+    			anypointInfo.targetEnvId, anypointInfo.runtimeTargetId, 
+    			appName, application[key]);
+
 		}));
 	})
 	.then((result) => {

@@ -6,6 +6,9 @@ const CONFIG_FILE = "config/promotion_config.yml";
 const TYPE_SERVER_CONST = "SERVER";
 const TYPE_CLUSTER_CONST = "CLUSTER";
 
+const SOURCE_ENV_ID = "SOURCE_ENV_ID";
+const TARGET_ENV_ID = "TARGET_ENV_ID";
+
 function loadConfiguration() {
 	try {
     	const config = yaml.safeLoad(fs.readFileSync(CONFIG_FILE, 'utf8'));
@@ -42,7 +45,31 @@ function definePromisesToGetTargetAndSourceRuntime(token, orgId,
 }
 
 /*
+ * Validate input argument and return its value
+ */
+function getArgument() {
+    if (process.argv.length <= 2) {
+        console.log("Invalid argument: " +
+            "please pass one of the valid arugments: \'api\' or \'app\'" );
+        process.exit(-1);
+    }
+ 
+    var param = process.argv[2];
+
+    if(param != "api" && param != "app") {
+        console.log("Invalid argument: " +
+            "please pass one of the valid arugments: \'api\' or \'app\'" );
+        process.exit(-1);
+    }
+
+    return param;
+}
+
+/*
  * Functionality exported by this module
  */
+module.exports.SOURCE_ENV_ID                                = SOURCE_ENV_ID;
+module.exports.TARGET_ENV_ID                                = TARGET_ENV_ID;
+module.exports.getArgument                                  = getArgument;
 module.exports.loadConfiguration 							= loadConfiguration;
 module.exports.definePromisesToGetTargetAndSourceRuntime 	= definePromisesToGetTargetAndSourceRuntime;

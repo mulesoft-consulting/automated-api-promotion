@@ -4,88 +4,6 @@
 const Req = require("request");
 const Promise = require("promise");
 
-const SOURCE_ENV_ID = "SOURCE_ENV_ID";
-const TARGET_ENV_ID = "TARGET_ENV_ID";
-
-/*
- * Login and return token.
- * Anypoint credentials must be stored as environment variables.
- */
-function login() {
-	return new Promise(function(resolve, reject) {
-		Req.post({
-		    "headers": { "content-type": "application/json" },
-		    "url": "https://anypoint.mulesoft.com/accounts/login",
-		    "body": JSON.stringify({
-		        "username": process.env.ANYPOINT_USER,
-		        "password": process.env.ANYPOINT_PASSWORD
-		    })
-		}, (error, response, body) => {
-			if(error) {
-				reject(error);
-			} else {
-				jsonBody = JSON.parse(body);
-
-			    var token = jsonBody.token_type + " " + jsonBody.access_token;
-			    console.log('Token has been retrieved: ' + token);
-			    resolve(token);
-			}
-
-		});
-	});
-}
-
-/*
- * Get Anypoint Organisation ID
- */
-function getOrgId(token) {
-	return new Promise(function(resolve, reject) {
-		Req.get({
-			"headers": {"Authorization": token}, 
-			"url": "https://anypoint.mulesoft.com/accounts/api/me"
-		}, (error, response, body) => {
-		    if(error) {
-		    	reject(error);
-		    } else {
-		    	jsonBody = JSON.parse(body);
-		    	console.log('Organization ID has been retrieved: ' + jsonBody.user.organization.id);
-		    	resolve(jsonBody.user.organization.id);
-		    }
-		});
-	});
-}
-
-/*
- * Returns IDs of required environments
- */
-function getEnvironments(token, orgId, targetEnvName, sourceEnvName) {
-	return new Promise(function(resolve, reject) {
-		Req.get({
-			"headers": {"Authorization": token}, 
-			"url": "https://anypoint.mulesoft.com/accounts/api/organizations/"+orgId+"/environments"
-		}, (error, response, body) => {
-		    if(error) {
-		    	reject(error);
-		    } else {
-			    jsonBody = JSON.parse(body);
-
-			    var target = jsonBody.data.find(function(item) {
-		  			return item.name == targetEnvName;
-				});
-				var source = jsonBody.data.find(function(item) {
-		  			return item.name == sourceEnvName;
-				});
-					 
-			    console.log('Source environment ID: ' + source.id + '\nTarget environment ID: ' + target.id);
-			    var envs = [];
-			    envs.push({[SOURCE_ENV_ID] : source.id});
-			    envs.push({[TARGET_ENV_ID] : target.id});
-			    resolve(envs);
-		    }
-		});
-	});
-}
-
 /*
  * Retrieves application IDs for provided environment and list of application from configuration
  */
@@ -178,17 +96,12 @@ function redeployApplication(token, orgId, envId, runtimeId, appName, appId) {
 	return getApplicationId(token, orgId, envId, appName).then(targetAppId => {
 		if(targetAppId != null) {
 			console.log("Application with name '" + appName + "' and ID: '" + targetAppId + "' is being redeployed.");
-			//return undeployApplication(token, orgId, envId, appId);
 			return updateAppOnTarget(token, orgId, envId, targetAppId, appId);
 		} else {
 			console.log("Application with name '" + appName + "' is being deployed.");
 			return deployToTarget(token, orgId, envId, appId, runtimeId, appName);
 		}
 	})
-	/*.then(result => {
-		console.log("Application with name '" + appName + "' is being deployed.");
-		return deployToTarget(token, orgId, envId, appId, runtimeId, appName);
-	})*/
 	.catch(err => {
 		console.log("Error: " + err);
 		process.exit(-1);
@@ -296,12 +209,7 @@ function undeployApplication(token, orgId, envId, appId) {
 	});
 }
 
-module.exports.SOURCE_ENV_ID 						= SOURCE_ENV_ID;
-module.exports.TARGET_ENV_ID 						= TARGET_ENV_ID;
-module.exports.login 							 	= login;
-module.exports.getOrgId 							= getOrgId;
 module.exports.getApplications 						= getApplications;
-module.exports.getEnvironments 						= getEnvironments;
 module.exports.getServer 							= getServer;
 module.exports.getCluster 							= getCluster;
 module.exports.redeployApplication 					= redeployApplication;
