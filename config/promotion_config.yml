@@ -1,21 +1,12 @@
 Config:
   SourceEnvName: "TEST"
-  SourceServerName: "summer"
-  SourceServerType: "SERVER"
+  SourceServerName: "ContainerizedCluster"
+  SourceServerType: "CLUSTER"
   TargetEnvName: "PROD"
   TargetServerName: "joker"
   TargetServerType: "SERVER"
   Applications:
-    - hello-world-v1
-    - hello-world-v2
-
-
-#Config:
-#  SourceEnvName: "PROD"
-#  SourceServerName: "joker"
-#  SourceServerType: "SERVER"
-#  TargetEnvName: "TEST"
-#  TargetServerName: "ContainerizedCluster"
-#  TargetServerType: "CLUSTER"
-#  Applications:
-#    - hello-world-cluster
+    - ir-s-customer
+#list of API Instance IDs that should be promoted
+  Apis:
+    - 9546857

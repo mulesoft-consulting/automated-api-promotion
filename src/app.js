@@ -22,7 +22,8 @@ const TARGET_TYPE = CONFIG.Config.TargetServerType;
 const SOURCE_TYPE = CONFIG.Config.SourceServerType;
 const TARGET_NAME = CONFIG.Config.TargetServerName;
 const SOURCE_NAME = CONFIG.Config.SourceServerName;
-const APPLICATIONS = CONFIG.Config.Applications; //applications to be promoted
+const APPLICATIONS = CONFIG.Config.Applications; //applications to be promoted (ARM)
+const APIS = CONFIG.Config.Apis; //apis to be promoted (API Manager)
 
 var anypointInfo = {};
 
@@ -39,11 +40,26 @@ if(arg === "api") {
 }
 //end of main logic
 
-
 /*
  * Triggers API promotion logic. Implements the whole integration flow.
  */
 function runApiPromotion() {
+
+	Common.getAnypointInfo(TARGET_ENV_NAME, SOURCE_ENV_NAME, SOURCE_TYPE, SOURCE_NAME, 
+		TARGET_TYPE, TARGET_NAME, APPLICATIONS)	
+	.then((anyInfo) => {
+		anypointInfo = anyInfo;
+		return Manager.promoteApis(APIS, anypointInfo);
+	})
+	.then((apiInstances) => {
+		console.log("Promoted API Instances: " + JSON.stringify(apiInstances));
+		Utility.generateConfigFilesForApplications(apiInstances, TARGET_ENV_NAME);
+		console.log("------ API Promotion finalized ------");
+	}) 
+	.catch(err => {
+		console.log("Error: " + err);
+		process.exit(-1);
+	});
 
 }
 

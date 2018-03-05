@@ -66,6 +66,28 @@ function getArgument() {
 }
 
 /*
+ * Function generates properties file for each promoted API instance to enable application
+ * registration with API Instance on API Manager. Properties file contains configuration of API Version
+ * for autodiscovery purposes. Application must be configured to see this configuration file 
+ * (https://docs.mulesoft.com/mule-user-guide/v/3.9/deploying-to-multiple-environments) and properties file 
+ * must be copied to MULE_HOME/conf folder.
+ */
+function generateConfigFilesForApplications(promotedApis, targetEnvName) {
+    promotedApis.forEach(function(apiInstance) {
+        //example of the naming convention: 'prod-ir-s-customer-v1-instance-conf.properties'
+        var fileName = targetEnvName.toLowerCase() + "-" + apiInstance.apiAssetId + "-"
+            + apiInstance.productVersion + "-instance-conf.properties";
+        var fileContent = "api.version="+apiInstance.apiVersion;
+        fs.writeFile(fileName, fileContent, function(err) {
+            if(err) {
+                return console.log(err);
+            }
+            console.log("API properties file generated: " + fileName);
+        });
+    }); 
+}
+
+/*
  * Functionality exported by this module
  */
 module.exports.SOURCE_ENV_ID                                = SOURCE_ENV_ID;
@@ -73,3 +95,4 @@ module.exports.TARGET_ENV_ID                                = TARGET_ENV_ID;
 module.exports.getArgument                                  = getArgument;
 module.exports.loadConfiguration 							= loadConfiguration;
 module.exports.definePromisesToGetTargetAndSourceRuntime 	= definePromisesToGetTargetAndSourceRuntime;
+module.exports.generateConfigFilesForApplications           = generateConfigFilesForApplications;
