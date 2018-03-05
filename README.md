@@ -88,6 +88,7 @@ prod-ir-s-customer-v1-instance-conf.properties
 ```
 
 <details><summary><b>Explanation</b></summary><p>
+	
 ```
 {environment}: Usually configured as environment variable to define runtime environment. e.g. mule.env=prod 
 {apiAssetId}: Exchange Asset ID of API Specification (application Maven artefact ID must have the same value) 
@@ -103,6 +104,7 @@ How to configure the project / application to use generated properties file.
 **1. Step**: Configure auto-discovery
 
 <details><summary><b>Sample</b></summary>
+	
 ```xml
 <api-platform-gw:api apiName="${api.name}" version="${api.version}" flowRef="api-main" create="true" apikitRef="api-config" doc:name="API Autodiscovery"/>
 ```
@@ -111,6 +113,7 @@ How to configure the project / application to use generated properties file.
 **2. Step**: Configure application to reference externally managed properties file (how the file is generated is described in previous section)
 
 <details><summary><b>Sample</b></summary>
+	
 ```xml
 <secure-property-placeholder:config name="Secure_Property_Placeholder"  
       key="${sec.key}" 
@@ -121,6 +124,7 @@ How to configure the project / application to use generated properties file.
 **3. Step**: Configure Maven to enable filtering of application directory. Add the following to your `pom.xml` for plugin `mule-app-maven-plugin`: `<copyToAppsDirectory>true</copyToAppsDirectory>`.
 
 <details><summary><b>Sample - Maven plugin</b></summary>
+	
 ```xml
 <plugin>
   <groupId>org.mule.tools.maven</groupId>
@@ -138,6 +142,7 @@ How to configure the project / application to use generated properties file.
 Also, add a new Maven property `<api.build.version>v1</api.build.version>`. The value must match the API Specification version in RAML.
 
 <details><summary><b>Sample - Maven property</b></summary>
+	
 ```xml
   <properties>
     <api.build.version>v1</api.build.version>
