@@ -52,14 +52,14 @@ config/promotion_config.yml
 npm install
 ```
 3. Run script app.js to:
-  1. Pormote API Instances
-  ```
-  node src/app.js api
-  ```
-  2. Promote Applications
-  ```
-  node src/app.js app
-  ```
+	1. Pormote API Instances
+	```
+	node src/app.js api
+	```
+	2. Promote Applications
+	```
+	node src/app.js app
+	```
 
 ## APIs and Applications promotion and auto-discovery
 Chapter describes how to enable auto-discovery for APIs and applications that have been promoted.
