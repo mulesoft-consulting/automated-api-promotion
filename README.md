@@ -94,7 +94,7 @@ prod-ir-s-customer-v1-instance-conf.properties
 {apiAssetId}: Exchange Asset ID of API Specification (application Maven artefact ID must have the same value) 
 {apiProductVersion}: API Version defined in RAML, also available on Exchange, e.g. v1. This is NOT API Version in API Manager that has the following format: apiProductVersion:apiInstanceId, e.g. v1:9547246 
 ```
-</p></details>
+</p></details><p></p>
 
 Generated properties file must be copied to `$MULE_HOME/conf` folder, so it can be picked up by application once promoted.
 
@@ -108,9 +108,9 @@ How to configure the project / application to use generated properties file.
 ```xml
 <api-platform-gw:api apiName="${api.name}" version="${api.version}" flowRef="api-main" create="true" apikitRef="api-config" doc:name="API Autodiscovery"/>
 ```
-</details>
+</details><p></p>
 
-**2. Step**: Configure application to reference externally managed properties file (how the file is generated is described in previous section)
+**2. Step**: Configure application to reference externally managed properties file (how the file is generated is described in previous [**section**](#capturing-api-version))
 
 <details><summary><b>Sample</b></summary>
 	
@@ -119,7 +119,7 @@ How to configure the project / application to use generated properties file.
       key="${sec.key}" 
       location="${mule.env}.properties,${mule.env}-${project.artifactId}-${api.build.version}-instance-conf.properties" doc:name="Secure Property Placeholder"/>
 ```
-</details>
+</details><p></p>
 
 **3. Step**: Configure Maven to enable filtering of application directory. Add the following to your `pom.xml` for plugin `mule-app-maven-plugin`: `<copyToAppsDirectory>true</copyToAppsDirectory>`.
 
@@ -137,7 +137,7 @@ How to configure the project / application to use generated properties file.
   </configuration>
 </plugin> 
 ```
-</details>
+</details><p></p>
 
 Also, add a new Maven property `<api.build.version>v1</api.build.version>`. The value must match the API Specification version in RAML.
 
@@ -157,7 +157,7 @@ Also, add a new Maven property `<api.build.version>v1</api.build.version>`. The 
     <mule.munit.support.version>3.9.1</mule.munit.support.version>
   </properties>
 ```
-</details>
+</details><p></p>
 
 How does the configuration described above work? <p></p>
 Maven uses property `<api.build.version>v1</api.build.version>` and artifact ID `<artifactId>ir-s-customer</artifactId>` to filter application folder, which replaces variables in configuration of secure property placeholder: `${mule.env}-${project.artifactId}-${api.build.version}-instance-conf.properties`. For this specific example we would get: `${mule.env}-ir-s-customer-v1-instance-conf.properties`. Variable `${mule.env}` stays unchanged as it is environment variable.
