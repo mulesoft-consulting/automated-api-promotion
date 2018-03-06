@@ -5,4 +5,4 @@ node_modules/
 .npm
 
 # ignore folder created by script dynamically 
-./generated_proper
+generated_proper/
