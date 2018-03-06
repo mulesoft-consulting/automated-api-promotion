@@ -174,7 +174,7 @@ The same environment variables as mentioned in [**Prerequisite**](#prerequisite)
 
 **3. Step**: Promote Applications: runs command `node src/app.js app`
 
-Implementation of the **2. Step** depends on the operating system, security and other requirements that could influence copying files between the servers, hence it is recommended to build own custom script and call it from pipeline instead of reusing existing implementation of the step. The existing implementation is included just to provide overall picture on the solution.
+Implementation of the **2. Step** depends on the operating system, security and other requirements that could influence copying files between the servers, hence it is recommended to build own custom script and call it from pipeline instead of reusing existing implementation of the step. The existing implementation is included just to provide overall view on the solution.
 
 ## Roadmap
 
