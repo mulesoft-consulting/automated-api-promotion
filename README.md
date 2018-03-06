@@ -166,9 +166,12 @@ Maven uses property `<api.build.version>v1</api.build.version>` and artifact ID 
 Project also contains `Jenkinsfile` with simple pipeline definition for easy integration with Jenkins. Pipeline implements "one click" deployment and is configured to be triggered manually.
 The same environment variables as mentioned in [**Prerequisite**](#prerequisite) section must be configured on Jenkins server.
 
-Pipeline consists of the following steps:
+#### Pipeline consists of the following steps:
+
 **1. Step**:  Promote APIs: runs command `node src/app.js api`
+
 **2. Step**: Copy Generated Properties Files: **customisable** step that copies files generated as part of the [**auto-discovery configuration**](#capturing-api-version)
+
 **3. Step**: Promote Applications: runs command `node src/app.js app`
 
 Implementation of the **2. Step** depends on the operating system, security and other requirements that could influence copying files between the servers, hence it is recommended to build own custom script and call it from pipeline instead of reusing existing implementation of the step. The existing implementation is included just to provide overall picture on the solution.
