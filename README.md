@@ -163,8 +163,15 @@ How does the configuration described above work? <p></p>
 Maven uses property `<api.build.version>v1</api.build.version>` and artifact ID `<artifactId>ir-s-customer</artifactId>` to filter application folder, which replaces variables in configuration of secure property placeholder: `${mule.env}-${project.artifactId}-${api.build.version}-instance-conf.properties`. For this specific example we would get: `${mule.env}-ir-s-customer-v1-instance-conf.properties`. Variable `${mule.env}` stays unchanged as it is environment variable.
 
 ## Continues Deployment
-Project also contains `Jenkinsfile` with simple pipeline definition for easy integration with Jenkins. Pipeline implements "one click" deployment and must be triggered manually.
+Project also contains `Jenkinsfile` with simple pipeline definition for easy integration with Jenkins. Pipeline implements "one click" deployment and is configured to be triggered manually.
 The same environment variables as mentioned in [**Prerequisite**](#prerequisite) section must be configured on Jenkins server.
+
+Pipeline consists of the following steps:
+**1. Step**:  Promote APIs: runs command `node src/app.js api`
+**2. Step**: Copy Generated Properties Files: **customisable** step that copies files generated as part of the [**auto-discovery configuration**](#capturing-api-version)
+**3. Step**: Promote Applications: runs command `node src/app.js app`
+
+Implementation of the **2. Step** depends on the operating system, security and other requirements that could influence copying files between the servers, hence it is recommended to build own custom script and call it from pipeline instead of reusing existing implementation of the step. The existing implementation is included just to provide overall picture on the solution.
 
 ## Roadmap
 
@@ -176,7 +183,7 @@ The same environment variables as mentioned in [**Prerequisite**](#prerequisite)
 ## Not Supported Functionality
 Deployment of external properties file is not supported. Properties file must be copied to server before this script runs.
 
-Every API Instance pormotion would create a new API Instance on target environment.
+Every API Instance promotion would create a new API Instance on target environment. Patching of API Instance is not supported.
 
 ## Notes
 * New API Instance creation means that your client applications must request access for this new version (e.g. if Client ID enforcement policy has been applied).

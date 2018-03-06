@@ -3,3 +3,6 @@ node_modules/
 
 # npm cache
 .npm
+
+# ignore folder created by script dynamically 
+./generated_proper

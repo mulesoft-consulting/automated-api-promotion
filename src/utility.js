@@ -73,12 +73,19 @@ function getArgument() {
  * must be copied to MULE_HOME/conf folder.
  */
 function generateConfigFilesForApplications(promotedApis, targetEnvName) {
+    //create directory if doesn't exist
+    var dir = './generated_proper';
+    if(!fs.existsSync(dir)) {
+       fs.mkdirSync(dir); 
+    }
+
+    //generate properties files
     promotedApis.forEach(function(apiInstance) {
         //example of the naming convention: 'prod-ir-s-customer-v1-instance-conf.properties'
         var fileName = targetEnvName.toLowerCase() + "-" + apiInstance.apiAssetId + "-"
             + apiInstance.productVersion + "-instance-conf.properties";
         var fileContent = "api.version="+apiInstance.apiVersion;
-        fs.writeFile(fileName, fileContent, function(err) {
+        fs.writeFile(dir+"/"+fileName, fileContent, function(err) {
             if(err) {
                 return console.log(err);
             }
