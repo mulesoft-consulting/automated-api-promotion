@@ -7,7 +7,7 @@
 
 MULE_HOME=/opt/mule-enterprise-standalone-3.9.0
 MULE_HOME_CONF=$MULE_HOME/conf
-TARGET_IP=172.17.0.5
+TARGET_IP=172.17.0.4
 TARGET_USER=deployer
 GENERATED_PROP_FOLDER=./generated_proper
 
