@@ -136,7 +136,7 @@ Also, add a new Maven property `<api.build.version>v1</api.build.version>`. The 
 </details><p></p>
 
 How does the configuration described above work? <p></p>
-Maven uses property `<api.build.version>v1</api.build.version>` to filter application folder, which replaces variables in configuration of auto-discovery: `version="${api.build.version}:${api.instance}"`. For this specific example we would get: `version="v1:${api.instance}"`. Property from settings `api.instance` is then used during the application deployment / start up to replacy variable `${api.instance}`, so finally we are getting `version="v1:9547246` and auto-discovery is enabled (for Mule 4 the API Instance ID is used instead of full api version, however it is NOT currently supported by the script).
+Maven uses property `<api.build.version>v1</api.build.version>` to filter application folder, which replaces variables in configuration of auto-discovery: `version="${api.build.version}:${api.instance}"`. For this specific example we would get: `version="v1:${api.instance}"`. Property from settings `api.instance` is then used during the application deployment / start up to replace variable `${api.instance}`, so finally we are getting `version="v1:9547246"` and auto-discovery is enabled (for Mule 4 the API Instance ID is used instead of full api version, however it is NOT currently supported by the script).
 
 ## Continues Deployment
 Project also contains `Jenkinsfile` with simple pipeline definition for easy integration with Jenkins. Pipeline implements "one click" deployment and is configured to be triggered manually.
