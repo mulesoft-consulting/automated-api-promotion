@@ -28,17 +28,16 @@ Project also contains prebuild Jenkins pipeline for "one click" deployment to pr
 	
 ```
 Config:
-  SourceEnvName: "TEST" 		  //name of environment configure on ARM
-  SourceServerName: "summer" 	//source runtime name - could be server or cluster
-  SourceServerType: "SERVER" 	//supported types are SERVER or CLUSTER
-  TargetEnvName: "PROD" 		  //name of environment configured on ARM
-  TargetServerName: "joker" 	//target runtime name - could be server or cluster
-  TargetServerType: "SERVER" 	//supported types are SERVER or CLUSTER
-  Applications: 				      //all the applications running on source runtime that should be promoted to target runtime
-    - hello-world-v1
-    - hello-world-v2
-  Apis:                       //API instances (in API Manager) that should be promoted to target environment
-    - 9546857                 //API Instance ID of the source API Instance
+  SourceEnvName: "TEST"				//name of environment configure on ARM
+  SourceServerName: "ContainerizedCluster"	//source runtime name - could be server or cluster
+  SourceServerType: "CLUSTER"			//supported types are SERVER or CLUSTER
+  TargetEnvName: "PROD"				//name of environment configured on ARM
+  TargetServerName: "joker"			//target runtime name - could be server or cluster
+  TargetServerType: "SERVER"			//supported types are SERVER or CLUSTER
+  Applications:					//all the applications running on source runtime that should be promoted to target runtime
+    - 
+      appName: "ir-s-customer"			//application name as displayed on the source server
+      apiInstanceId: 9546857			//API Instance ID application is registered with
 ```
 </p></details>
 
@@ -52,76 +51,53 @@ config/promotion_config.yml
 npm install
 ```
 3. Run script app.js to:
-	1. Pormote API Instances
+	1. Pormote API Instances and applications
 	```
-	node src/app.js api
+	node src/app.js
 	```
-	2. Promote Applications
+	2. Promote Applications only - patch applications without any updates in registration with API Manager 
 	```
-	node src/app.js app
+	node src/app.js app-only
 	```
 
 ## APIs and Applications promotion and auto-discovery
 Chapter describes how to enable auto-discovery for APIs and applications that have been promoted.
 
-Auto-discovery requires API Version to be configured within the application `<api-platform-gw:api apiName="${apiName}" version="${apiVersion}" flowRef="proxy" />`. See documentation for more details [here](https://docs.mulesoft.com/api-manager/v/2.x/configure-auto-discovery-new-task). The API Version is generated as part of the API promotion process (once API Instance is created on specific environment), however application must be aware of the API Version in API Manager to register with API Manager.
+Auto-discovery requires API Version to be configured within the application `<api-platform-gw:api apiName="${api.name}" version="${api.build.version}:${api.instance}" flowRef="api-main" create="true" apikitRef="api-config" doc:name="API Autodiscovery" />`. See documentation for more details [here](https://docs.mulesoft.com/api-manager/v/2.x/configure-auto-discovery-new-task). The API Version is generated as part of the API promotion process (once API Instance is created on specific environment), however application must be aware of the API Version in API Manager to register with API Manager.
 
 The problem statement the solution solves is: **How to make application aware of the new API Version for auto-discovery purposes without the need to update application itself and build a new package.** - so an application can be easily promoted instead of doing standard deployment / redeployment.
 
-### Preconditions
-API Asset ID of API Specification published in Exchange must be equal to Maven artificat ID (and project name) of the application that implements API Specification.
-
+### Restrictions
 The tool has been tested for Mule runtime 3.9.0. Please note, that there are some deviations from Mule runtime 4 auto-discovery configuration. More details could be found [here](https://docs.mulesoft.com/api-manager/v/2.x/api-auto-discovery-new-concept).
+
+The tool doesn't support application promotion only, if it is a fresh deployment (target server is not running the application yet) without API promotion and registration.
+
+Supported scenarios are:
+* Promote API together with application (fresh deployment).
+* Promote API Instance (the original one won't be used anymore - will be switched to Inactive state) and patch existing application on target server.
+* Patch existing application on the target servers - no updates in API Instance / new application version will register with the same API Instance as the old version.
 
 ### Capturing API Version
 How to capture API Version and make it available for application.
 
-After running the command `node src/app.js api` the configuration file is generated for each API Instance that has been promoted. Configuration file contains attribute with API Version value in it, e.g. `api.version=v1:9547246` (for Mule 4 the API Instance ID is used instead, however it is NOT currently supported by the script).
+After running the command `node src/app.js` API Instances are promoted and API Instance IDs captured, so each application can be registered with proper API Instance as part of the next step: promotion of applications. The script creates a pairs of origin API Instance ID and newly generated API Instance ID (ID of promoted API Instance on the target environment), so it can easily identify what application needs to use what API Instance ID.
 
-Naming convetions of the generated properties file: 
-```
-{environmnet}-{apiAssetId}-{apiProductVersion}-instance-conf.properties
-```
-e.g. 
-```
-prod-ir-s-customer-v1-instance-conf.properties
-```
-
-<details><summary><b>Explanation</b></summary><p>
-	
-```
-{environment}: Usually configured as environment variable to define runtime environment. e.g. mule.env=prod 
-{apiAssetId}: Exchange Asset ID of API Specification (application Maven artefact ID must have the same value) 
-{apiProductVersion}: API Version defined in RAML, also available on Exchange, e.g. v1. This is NOT API Version in API Manager that has the following format: apiProductVersion:apiInstanceId, e.g. v1:9547246 
-```
-</p></details><p></p>
-
-Generated properties file must be copied to `$MULE_HOME/conf` folder, so it can be picked up by application once promoted.
+Captured API Instance ID is then used and added to properties in application's settings, as displayed on picture below: 
+![Settings](./images/app-settings.png)
 
 ### Project configuration
-How to configure the project / application to use generated properties file.
+How to configure the project / application to use a new API Instance ID generated by promoting the instance from lower environment.
 
 **1. Step**: Configure auto-discovery
 
 <details><summary><b>Sample</b></summary>
 	
 ```xml
-<api-platform-gw:api apiName="${api.name}" version="${api.version}" flowRef="api-main" create="true" apikitRef="api-config" doc:name="API Autodiscovery"/>
+<api-platform-gw:api apiName="${api.name}" version="${api.build.version}:${api.instance}" flowRef="api-main" create="true" apikitRef="api-config" doc:name="API Autodiscovery" />
 ```
 </details><p></p>
 
-**2. Step**: Configure application to reference externally managed properties file (how the file is generated is described in previous [**section**](#capturing-api-version))
-
-<details><summary><b>Sample</b></summary>
-	
-```xml
-<secure-property-placeholder:config name="Secure_Property_Placeholder"  
-      key="${sec.key}" 
-      location="${mule.env}.properties,${mule.env}-${project.artifactId}-${api.build.version}-instance-conf.properties" doc:name="Secure Property Placeholder"/>
-```
-</details><p></p>
-
-**3. Step**: Configure Maven to enable filtering of application directory. Add the following to your `pom.xml` for plugin `mule-app-maven-plugin`: `<copyToAppsDirectory>true</copyToAppsDirectory>`.
+**2. Step**: Configure Maven to enable filtering of application directory. Add the following to your `pom.xml` for plugin `mule-app-maven-plugin`: `<copyToAppsDirectory>true</copyToAppsDirectory>`.
 
 <details><summary><b>Sample - Maven plugin</b></summary>
 	
@@ -139,7 +115,7 @@ How to configure the project / application to use generated properties file.
 ```
 </details><p></p>
 
-Also, add a new Maven property `<api.build.version>v1</api.build.version>`. The value must match the API Specification version in RAML.
+Also, add a new Maven property `<api.build.version>v1</api.build.version>`. The value must match the API Specification version in RAML (and in Exchange / API Manager).
 
 <details><summary><b>Sample - Maven property</b></summary>
 	
@@ -160,7 +136,7 @@ Also, add a new Maven property `<api.build.version>v1</api.build.version>`. The 
 </details><p></p>
 
 How does the configuration described above work? <p></p>
-Maven uses property `<api.build.version>v1</api.build.version>` and artifact ID `<artifactId>ir-s-customer</artifactId>` to filter application folder, which replaces variables in configuration of secure property placeholder: `${mule.env}-${project.artifactId}-${api.build.version}-instance-conf.properties`. For this specific example we would get: `${mule.env}-ir-s-customer-v1-instance-conf.properties`. Variable `${mule.env}` stays unchanged as it is environment variable.
+Maven uses property `<api.build.version>v1</api.build.version>` to filter application folder, which replaces variables in configuration of auto-discovery: `version="${api.build.version}:${api.instance}"`. For this specific example we would get: `version="v1:${api.instance}"`. Property from settings `api.instance` is then used during the application deployment / start up to replacy variable `${api.instance}`, so finally we are getting `version="v1:9547246` and auto-discovery is enabled (for Mule 4 the API Instance ID is used instead of full api version, however it is NOT currently supported by the script).
 
 ## Continues Deployment
 Project also contains `Jenkinsfile` with simple pipeline definition for easy integration with Jenkins. Pipeline implements "one click" deployment and is configured to be triggered manually.
@@ -168,13 +144,9 @@ The same environment variables as mentioned in [**Prerequisite**](#prerequisite)
 
 #### Pipeline consists of the following steps:
 
-**1. Step**:  Promote APIs: runs command `node src/app.js api`
+**1. Step**:  Promote APIs and Application: runs command `node src/app.js`
 
-**2. Step**: Copy Generated Properties Files: **customisable** step that copies files generated as part of the [**auto-discovery configuration**](#capturing-api-version)
-
-**3. Step**: Promote Applications: runs command `node src/app.js app`
-
-Implementation of the **2. Step** depends on the operating system, security and other requirements that could influence copying files between the servers, hence it is recommended to build own custom script and call it from pipeline instead of reusing existing implementation of the step. The existing implementation is included just to provide overall view on the solution.
+Step could be also reconfigured to promote applications only by updating the command above to: `node src/app.js app-only`.
 
 ## Roadmap
 
@@ -189,6 +161,8 @@ Deployment of external properties file is not supported. Properties file must be
 Every API Instance promotion would create a new API Instance on target environment. Patching of API Instance is not supported.
 
 ## Notes
+* Custom policies are supported. The tool will promote API Instance with all the configured policies, custom policies included.
+
 * New API Instance creation means that your client applications must request access for this new version (e.g. if Client ID enforcement policy has been applied).
 
 * Impact on Analytics yet to be clarified.
