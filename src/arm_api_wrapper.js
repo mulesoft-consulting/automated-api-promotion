@@ -22,9 +22,12 @@ function getApplications(token, orgId, envId, applicationsFromConfig) {
 			    var applicationsToBePromoted = [];
 			    applicationsFromConfig.forEach(function(app) {
 					var application = jsonBody.data.find(function(item) {
-		  				return item.name == app;
+		  				return item.name == app.appName;
 					});
-					applicationsToBePromoted.push({[app] : application.id});
+					applicationsToBePromoted.push({
+						"appName": app.appName,
+						"appId": application.id,
+						"apiInstanceId": app.apiInstanceId});
 				});
 			    
 				resolve(applicationsToBePromoted);
@@ -92,14 +95,34 @@ function getCluster(token, orgId, envId, clusterName) {
  * Deployes a fresh application or if application already exists undeployes it and deployes a new version
  * from environment configure as source
  */
-function redeployApplication(token, orgId, envId, runtimeId, appName, appId) {
+function redeployApplication(token, orgId, envId, runtimeId, appName, appId, originApiInstanceId, apiInstances) {
 	return getApplicationId(token, orgId, envId, appName).then(targetAppId => {
+
+		//get api instance id for provided application and its origin API instance ID 
+		//	- application that is being deployed		
+		var apiInstance = {};
+		var apiInstanceId = null;
+		if(apiInstances != null) {
+			apiInstance = apiInstances.find(function(item) {
+		  			return item.originApiInstanceId == originApiInstanceId;
+			});
+			if(apiInstance != null) {
+				apiInstanceId = apiInstance.apiInstanceId;
+			}
+		}			
+
 		if(targetAppId != null) {
-			console.log("Application with name '" + appName + "' and ID: '" + targetAppId + "' is being redeployed.");
-			return updateAppOnTarget(token, orgId, envId, targetAppId, appId);
+			console.log("Application with name '%s' and ID: '%s' is being redeployed. API Instance ID for app is: '%s'", 
+				appName, targetAppId, apiInstanceId);
+			return updateAppOnTarget(token, orgId, envId, targetAppId, appId, appName, apiInstanceId);
 		} else {
-			console.log("Application with name '" + appName + "' is being deployed.");
-			return deployToTarget(token, orgId, envId, appId, runtimeId, appName);
+			console.log("Application with name '%s' and API instance ID '%s' is being deployed.", 
+				appName, apiInstanceId);
+			if(apiInstanceId == null) {
+				console.log("WARNING WARNING WARNING: API instance ID has NOT been found for application name: %s. " + 
+					"Application will NOT be registered with API Manager.", appName);
+			}
+			return deployToTarget(token, orgId, envId, appId, runtimeId, appName, apiInstanceId);
 		}
 	})
 	.catch(err => {
@@ -120,7 +143,7 @@ function getApplicationId(token, orgId, envId, appName) {
 		    if(error) {
 		    	reject(error);
 		    } else {
-			    var jsonBody = JSON.parse(body);			    
+			    var jsonBody = JSON.parse(body);	
 				var application = jsonBody.data.find(function(item) {
 	  				return item.name == appName;
 				});
@@ -141,14 +164,33 @@ function getApplicationId(token, orgId, envId, appName) {
 /*
  * Updates the application if it already exists on the target runtime.
  */
-function updateAppOnTarget(token, orgId, envId, appIdToBeUpdated, sourceAppId) {
+function updateAppOnTarget(token, orgId, envId, appIdToBeUpdated, sourceAppId, targetAppName, apiInstanceId) {
+	//prepare body
+	var body = {};
+	//update API instance configuration - register APP with the new API instance
+	if(apiInstanceId != null) {
+		body = {
+	    	"applicationSource":{"id":sourceAppId,"source":"HYBRID"},
+	        "configuration": {
+	        	"mule.agent.application.properties.service": {
+	        		"applicationName": targetAppName,
+	        		"properties": {"api.instance": new String(apiInstanceId)}
+	        	}
+	        }
+		};
+	} 
+	//do NOT update API instance configuration - register APP with the existing API instance
+	else {
+		body = {"applicationSource":{"id":sourceAppId,"source":"HYBRID"}};
+	}
+	
 	return new Promise(function(resolve, reject) {
 		Req.patch({
 		    "headers": { "content-type": "application/json", "Authorization": token, 
 		    	"X-ANYPNT-ORG-ID": orgId, "X-ANYPNT-ENV-ID": envId
 			},
 		    "url": "https://anypoint.mulesoft.com/hybrid/api/v1/applications/"+appIdToBeUpdated+"/artifact",
-		    "body": JSON.stringify({"applicationSource":{"id":sourceAppId,"source":"HYBRID"}})
+		    "body": JSON.stringify(body)
 		}, (error, response, body) => {
 			if(error) {
 				reject(error);
@@ -164,7 +206,7 @@ function updateAppOnTarget(token, orgId, envId, appIdToBeUpdated, sourceAppId) {
 /*
  * Deployes defined application to target environment and server, e.g. PROD
  */
-function deployToTarget(token, orgId, envId, appId, targetId, appName) {
+function deployToTarget(token, orgId, envId, appId, targetId, appName, apiInstanceId) {
 	return new Promise(function(resolve, reject) {
 		Req.post({
 		    "headers": { "content-type": "application/json", "Authorization": token, 
@@ -174,7 +216,13 @@ function deployToTarget(token, orgId, envId, appId, targetId, appName) {
 		    "body": JSON.stringify({
 		        "applicationSource": {"source": "HYBRID", "id": appId},
 		        "targetId": targetId,
-		        "artifactName": appName
+		        "artifactName": appName,
+		        "configuration": {
+		        	"mule.agent.application.properties.service": {
+		        		"applicationName": appName,
+		        		"properties": {"api.instance": new String(apiInstanceId)}
+		        	}
+		        }
 		    })
 		}, (error, response, body) => {
 			if(error) {

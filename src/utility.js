@@ -9,6 +9,8 @@ const TYPE_CLUSTER_CONST = "CLUSTER";
 const SOURCE_ENV_ID = "SOURCE_ENV_ID";
 const TARGET_ENV_ID = "TARGET_ENV_ID";
 
+const APP_ONLY_PARAM = "app-only";
+
 function loadConfiguration() {
 	try {
     	const config = yaml.safeLoad(fs.readFileSync(CONFIG_FILE, 'utf8'));
@@ -37,7 +39,7 @@ function definePromisesToGetTargetAndSourceRuntime(token, orgId,
     } else if(targetType == TYPE_CLUSTER_CONST && sourceType == TYPE_SERVER_CONST) {
     	promiseArray = [Arm.getCluster(token, orgId, targetId, targetName), Arm.getServer(token, orgId, sourceId, sourcneName)];
 	} else {
-	    	console.log("Error: Unsupported target or source type provided!");
+	    console.log("Error: Unsupported target or source type provided!");
     	process.exit(-1);
     }
 
@@ -49,16 +51,14 @@ function definePromisesToGetTargetAndSourceRuntime(token, orgId,
  */
 function getArgument() {
     if (process.argv.length <= 2) {
-        console.log("Invalid argument: " +
-            "please pass one of the valid arugments: \'api\' or \'app\'" );
-        process.exit(-1);
+        return null;
     }
  
     var param = process.argv[2];
 
-    if(param != "api" && param != "app") {
+    if(param != APP_ONLY_PARAM) {
         console.log("Invalid argument: " +
-            "please pass one of the valid arugments: \'api\' or \'app\'" );
+            "please pass one of the valid arugments: \'%s\'", APP_ONLY_PARAM);
         process.exit(-1);
     }
 
@@ -66,40 +66,11 @@ function getArgument() {
 }
 
 /*
- * Function generates properties file for each promoted API instance to enable application
- * registration with API Instance on API Manager. Properties file contains configuration of API Version
- * for autodiscovery purposes. Application must be configured to see this configuration file 
- * (https://docs.mulesoft.com/mule-user-guide/v/3.9/deploying-to-multiple-environments) and properties file 
- * must be copied to MULE_HOME/conf folder.
- */
-function generateConfigFilesForApplications(promotedApis, targetEnvName) {
-    //create directory if doesn't exist
-    var dir = './generated_proper';
-    if(!fs.existsSync(dir)) {
-       fs.mkdirSync(dir); 
-    }
-
-    //generate properties files
-    promotedApis.forEach(function(apiInstance) {
-        //example of the naming convention: 'prod-ir-s-customer-v1-instance-conf.properties'
-        var fileName = targetEnvName.toLowerCase() + "-" + apiInstance.apiAssetId + "-"
-            + apiInstance.productVersion + "-instance-conf.properties";
-        var fileContent = "api.version="+apiInstance.apiVersion;
-        fs.writeFile(dir+"/"+fileName, fileContent, function(err) {
-            if(err) {
-                return console.log(err);
-            }
-            console.log("API properties file generated: " + fileName);
-        });
-    }); 
-}
-
-/*
  * Functionality exported by this module
  */
+module.exports.APP_ONLY_PARAM                               = APP_ONLY_PARAM;
 module.exports.SOURCE_ENV_ID                                = SOURCE_ENV_ID;
 module.exports.TARGET_ENV_ID                                = TARGET_ENV_ID;
 module.exports.getArgument                                  = getArgument;
 module.exports.loadConfiguration 							= loadConfiguration;
 module.exports.definePromisesToGetTargetAndSourceRuntime 	= definePromisesToGetTargetAndSourceRuntime;
-module.exports.generateConfigFilesForApplications           = generateConfigFilesForApplications;

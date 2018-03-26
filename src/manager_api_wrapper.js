@@ -10,8 +10,8 @@ const Promise = require("promise");
 function promoteApis(apis, anypointInfo) {
 
 	return Promise.all(apis.map((api) => {
-		console.log("Api Instance ID: " + api);
-		return promoteApi(api, anypointInfo);
+		console.log("Api Instance ID: " + api.apiInstanceId);
+		return promoteApi(api.apiInstanceId, anypointInfo);
 	}));
 
 }
@@ -40,10 +40,12 @@ function promoteApi(apiId, anypointInfo) {
 		    	reject(error);
 		    } else {
 			    var jsonBody = JSON.parse(body);
-			    console.dir("Promoted Autodiscovery instance name: " + jsonBody.autodiscoveryInstanceName);			    
+			    console.dir("Promoted Autodiscovery instance name: " + jsonBody.autodiscoveryInstanceName);
 				resolve({"apiAssetId": jsonBody.assetId, 
 					"apiVersion": jsonBody.autodiscoveryInstanceName, 
-					"productVersion": jsonBody.productVersion});
+					"productVersion": jsonBody.productVersion,
+					"apiInstanceId": jsonBody.id,
+					"originApiInstanceId": apiId});
 		    }
 
 		});

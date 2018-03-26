@@ -6,7 +6,6 @@ Config:
   TargetServerName: "joker"
   TargetServerType: "SERVER"
   Applications:
-    - ir-s-customer
-#list of API Instance IDs that should be promoted
-  Apis:
-    - 9546857
+    - 
+      appName: "ir-s-customer"
+      apiInstanceId: 9546857

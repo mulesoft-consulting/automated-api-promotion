@@ -23,7 +23,7 @@ var anypointInfo = {
  * target runtime id
  * source runtime id
  */
-function getAnypointInfo(targetEnvName, sourceEnvName, sourceType, sourceName, targetType, targetName, applications) {
+function getAnypointInfo(targetEnvName, sourceEnvName, sourceType, sourceName, targetType, targetName) {
 
 	return new Promise(function(resolve, reject) {
 

@@ -6,7 +6,7 @@
 //     Script manages promotion of configured applications from source environment ===
 //     to target environment. E.g. from TEST to PROD 	 				   		   ===	
 // ===================================================================================
-console.log('------ Application has started ------');
+console.log('------ Promotion has started ------');
 
 //used libs
 const Utility = require('./utility');
@@ -23,7 +23,6 @@ const SOURCE_TYPE = CONFIG.Config.SourceServerType;
 const TARGET_NAME = CONFIG.Config.TargetServerName;
 const SOURCE_NAME = CONFIG.Config.SourceServerName;
 const APPLICATIONS = CONFIG.Config.Applications; //applications to be promoted (ARM)
-const APIS = CONFIG.Config.Apis; //apis to be promoted (API Manager)
 
 var anypointInfo = {};
 
@@ -33,10 +32,10 @@ var arg = Utility.getArgument(); //validate argument
 console.log('User: "' + process.env.ANYPOINT_USER + '" is connecting to anypoint');
 
 //main logic
-if(arg === "api") {
-	runApiPromotion();
-} else if("app") {
+if(arg == Utility.APP_ONLY_PARAM) {
 	runApplicationPromotion();
+} else {
+	runApiPromotion();
 }
 //end of main logic
 
@@ -46,15 +45,19 @@ if(arg === "api") {
 function runApiPromotion() {
 
 	Common.getAnypointInfo(TARGET_ENV_NAME, SOURCE_ENV_NAME, SOURCE_TYPE, SOURCE_NAME, 
-		TARGET_TYPE, TARGET_NAME, APPLICATIONS)	
+		TARGET_TYPE, TARGET_NAME)	
 	.then((anyInfo) => {
 		anypointInfo = anyInfo;
-		return Manager.promoteApis(APIS, anypointInfo);
+		return Manager.promoteApis(APPLICATIONS, anypointInfo);
 	})
 	.then((apiInstances) => {
 		console.log("Promoted API Instances: " + JSON.stringify(apiInstances));
-		Utility.generateConfigFilesForApplications(apiInstances, TARGET_ENV_NAME);
 		console.log("------ API Promotion finalized ------");
+
+		//trigger APP deployment / promotion immediatelly
+		console.log("------ APP Promotion has been initialized ------");
+		runApplicationPromotion(apiInstances);
+
 	}) 
 	.catch(err => {
 		console.log("Error: " + err);
@@ -65,11 +68,15 @@ function runApiPromotion() {
 
 /*
  * Triggers application promotion logic. Implements the whole integration flow.
+ * Function accepts api instances as input to be able to register promoted applications with api instances in API Manager.
+ * Application can be patched with or without updating API Instance.
+ * It is highly recommended NOT to trigger fresh app deployment without registering with API Manager - without promoting API
+ * together with application.
  */
-function runApplicationPromotion() {
+function runApplicationPromotion(apiInstances) {
 
 	Common.getAnypointInfo(TARGET_ENV_NAME, SOURCE_ENV_NAME, SOURCE_TYPE, SOURCE_NAME, 
-		TARGET_TYPE, TARGET_NAME, APPLICATIONS)	
+		TARGET_TYPE, TARGET_NAME)	
 	.then((anyInfo) => {
 		anypointInfo = anyInfo;
 		return Arm.getApplications(anypointInfo.token, anypointInfo.orgId, anypointInfo.sourceEnvId, APPLICATIONS);
@@ -80,14 +87,10 @@ function runApplicationPromotion() {
 		//deploy all the applications
 		return Promise.all(applications.map((application) => {
 			console.log("Application: " + JSON.stringify(application));
-			var appName = "";
-			for(var key in application){
-        		appName = key;
-    		}
 
     		return Arm.redeployApplication(anypointInfo.token, anypointInfo.orgId, 
     			anypointInfo.targetEnvId, anypointInfo.runtimeTargetId, 
-    			appName, application[key]);
+    			application.appName, application.appId, application.apiInstanceId, apiInstances);
 
 		}));
 	})
