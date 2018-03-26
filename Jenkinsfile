@@ -7,24 +7,16 @@ pipeline {
     } 
 
     stages {
+        
+        stage('Install Dependencies') {
+            steps { 
+                sh 'npm install'
+            }
+        }
     
     	stage('Promote APIs') {
             steps { 
-                sh 'npm install'
-                sh 'node src/app.js api' 
-            }
-        }
-
-        stage('Copy Generated Properties Files') {
-            steps {
-                sh 'chmod 0700 .bin/copy-generated-properties-files.sh' 
-                sh '.bin/copy-generated-properties-files.sh' 
-            }
-        }
-
-        stage('Promote Applications') {
-            steps { 
-                sh 'node src/app.js app' 
+                sh 'node src/app.js' 
             }
         }
     	
