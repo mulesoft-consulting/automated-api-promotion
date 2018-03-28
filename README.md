@@ -5,6 +5,14 @@ Use this script to easily promote your APIs and applications from one environmen
 
 The tool also solves the problem stated below:<p>
 **How to make application aware of the new API Version for auto-discovery purposes without the need to update application itself and build a new package.**
+	
+Supported scenarios are:
+
+![Scenarios](./images/scenarios.png)
+
+* Promote API together with application (fresh deployment).
+* Promote API Instance (the original one won't be used anymore - will be switched to Inactive state) and patch existing application on target server.
+* Patch existing application on the target servers - no updates in API Instance / new application version will register with the same API Instance as the old version.
 
 Project also contains prebuild Jenkins pipeline for "one click" deployment to provide some idea on how this tool could be used in terms of CICD.
 
@@ -71,11 +79,6 @@ The problem statement the solution solves is: **How to make application aware of
 The tool has been tested for Mule runtime 3.9.0. Please note, that there are some deviations from Mule runtime 4 auto-discovery configuration. More details could be found [here](https://docs.mulesoft.com/api-manager/v/2.x/api-auto-discovery-new-concept).
 
 The tool doesn't support application promotion only, if it is a fresh deployment (target server is not running the application yet) without API promotion and registration.
-
-Supported scenarios are:
-* Promote API together with application (fresh deployment).
-* Promote API Instance (the original one won't be used anymore - will be switched to Inactive state) and patch existing application on target server.
-* Patch existing application on the target servers - no updates in API Instance / new application version will register with the same API Instance as the old version.
 
 ### Capturing API Version
 How to capture API Version and make it available for application.
