@@ -23,14 +23,14 @@ var anypointInfo = {
  * target runtime id
  * source runtime id
  */
-function getAnypointInfo(targetEnvName, sourceEnvName, sourceType, sourceName, targetType, targetName) {
+function getAnypointInfo(targetEnvName, sourceEnvName, sourceType, sourceName, targetType, targetName, organisationName) {
 
 	return new Promise(function(resolve, reject) {
 
 		login()
 		.then((resToken) => {
 			anypointInfo.token = resToken;
-			return getOrgId(resToken);
+			return getOrgId(resToken, organisationName);
 		})
 		.then((resOrgId) => {
 			anypointInfo.orgId = resOrgId; //save for use by other calls
@@ -89,7 +89,7 @@ function login() {
 /*
  * Get Anypoint Organisation ID
  */
-function getOrgId(token) {
+function getOrgId(token, organisationName) {
 	return new Promise(function(resolve, reject) {
 		Req.get({
 			"headers": {"Authorization": token}, 
@@ -99,8 +99,11 @@ function getOrgId(token) {
 		    	reject(error);
 		    } else {
 		    	jsonBody = JSON.parse(body);
-		    	console.log('Organization ID has been retrieved: ' + jsonBody.user.organization.id);
-		    	resolve(jsonBody.user.organization.id);
+		    	var org = jsonBody.user.memberOfOrganizations.find(function(org) {
+		  			return org.name == organisationName;
+				});
+		    	console.log('Organization ID has been retrieved: ' + org.id);
+		    	resolve(org.id);
 		    }
 		});
 	});

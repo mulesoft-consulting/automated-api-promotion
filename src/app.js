@@ -22,6 +22,7 @@ const TARGET_TYPE = CONFIG.Config.TargetServerType;
 const SOURCE_TYPE = CONFIG.Config.SourceServerType;
 const TARGET_NAME = CONFIG.Config.TargetServerName;
 const SOURCE_NAME = CONFIG.Config.SourceServerName;
+const ORGANISATION = CONFIG.Config.Organisation;
 const APPLICATIONS = CONFIG.Config.Applications; //applications to be promoted (ARM)
 
 var anypointInfo = {};
@@ -45,7 +46,7 @@ if(arg == Utility.APP_ONLY_PARAM) {
 function runApiPromotion() {
 
 	Common.getAnypointInfo(TARGET_ENV_NAME, SOURCE_ENV_NAME, SOURCE_TYPE, SOURCE_NAME, 
-		TARGET_TYPE, TARGET_NAME)	
+		TARGET_TYPE, TARGET_NAME, ORGANISATION)	
 	.then((anyInfo) => {
 		anypointInfo = anyInfo;
 		return Manager.promoteApis(APPLICATIONS, anypointInfo);
@@ -76,7 +77,7 @@ function runApiPromotion() {
 function runApplicationPromotion(apiInstances) {
 
 	Common.getAnypointInfo(TARGET_ENV_NAME, SOURCE_ENV_NAME, SOURCE_TYPE, SOURCE_NAME, 
-		TARGET_TYPE, TARGET_NAME)	
+		TARGET_TYPE, TARGET_NAME, ORGANISATION)	
 	.then((anyInfo) => {
 		anypointInfo = anyInfo;
 		return Arm.getApplications(anypointInfo.token, anypointInfo.orgId, anypointInfo.sourceEnvId, APPLICATIONS);
