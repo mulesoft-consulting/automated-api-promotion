@@ -36,6 +36,7 @@ Project also contains prebuild Jenkins pipeline for "one click" deployment to pr
 	
 ```
 Config:
+  Organisation: "IRMulesoftCrowd"		//your organisation / business group
   SourceEnvName: "TEST"				//name of environment configure on ARM
   SourceServerName: "ContainerizedCluster"	//source runtime name - could be server or cluster
   SourceServerType: "CLUSTER"			//supported types are SERVER or CLUSTER
