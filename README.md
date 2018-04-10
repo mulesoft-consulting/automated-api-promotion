@@ -101,7 +101,7 @@ How to configure the project / application to use a new API Instance ID generate
 ```
 </details><p></p>
 
-**2. Step**: Configure Maven to enable filtering of application directory. Add the following to your `pom.xml` for plugin `mule-app-maven-plugin`: `<copyToAppsDirectory>true</copyToAppsDirectory>`.
+**2. Step**: Configure Maven to enable filtering of application directory. Add the following to your `pom.xml` for plugin `mule-app-maven-plugin`: `<filterAppDirectory>true</filterAppDirectory>`.
 
 <details><summary><b>Sample - Maven plugin</b></summary>
 	
