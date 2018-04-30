@@ -23,12 +23,13 @@ Project also contains prebuild Jenkins pipeline for "one click" deployment to pr
 	* `ANYPOINT_USER` - user with permission to promote APIs (deployment user)
 	* `ANYPOINT_PASSWORD` - user password
 
-## Supported Anypoint Platform versions
+## Supported versions
 
-* Crowd 2
+* Anypoint Platform Crowd 2
 * API: [ARM - Anypoint Runtime Manager 1.23](https://anypoint.mulesoft.com/apiplatform/anypoint-platform/#/portals/organizations/ae639f94-da46-42bc-9d51-180ec25cf994/apis/38784/versions/1490649/pages/182845)
 * API: [API Manager v1](https://anypoint.mulesoft.com/exchange/portals/anypoint-platform-eng/f1e97bc6-315a-4490-82a7-23abe036327a.anypoint-platform/api-manager-api/api/v1/pages/Promoting%20an%20API/)
 * Tested on Mule Runtime 3.9.0
+* Tested with Node.js v8.4.0 and npm 5.8.0
 
 
 ## Configuration
