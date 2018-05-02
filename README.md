@@ -147,11 +147,11 @@ Maven uses property `<api.build.version>v1</api.build.version>` to filter applic
 Project also contains `Jenkinsfile` with simple pipeline definition for easy integration with Jenkins. Pipeline implements "one click" deployment and is configured to be triggered manually.
 The same environment variables as mentioned in [**Prerequisite**](#prerequisite) section must be configured on Jenkins server.
 
-#### Pipeline consists of the following steps:
+#### Pipeline consists of the following stages:
 
-**1. Step**:  Promote APIs and Application: runs command `node src/app.js`
+**1. Stage**:  Promote APIs and Applications (exectues when build parameter APP_ONLY == false): runs command `node src/app.js`
 
-Step could be also reconfigured to promote applications only by updating the command above to: `node src/app.js app-only`.
+**2. Stage**:  Promote Applications only (executes when build parameter APP_ONLY == true): runs command `node src/app.js app-only`
 
 ## Roadmap
 
