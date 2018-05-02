@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(name: 'Promote-Application-Only',
+        booleanParam(name: 'APP_ONLY',
             defaultValue: false,
             description: 'Enable if you would like to promote only applications - no API instance will be promoted.'
         )
@@ -24,7 +24,7 @@ pipeline {
     	stage('Promote APIs and Applications') {
             when {
                 expression {
-                    return params.Promote-Application-Only == false
+                    return params.APP_ONLY == false
                 }
             }
             steps { 
@@ -35,7 +35,7 @@ pipeline {
         stage('Promote Applications only') {
             when {
                 expression {
-                    return params.Promote-Application-Only == true
+                    return params.APP_ONLY == true
                 }
             }
             steps { 
